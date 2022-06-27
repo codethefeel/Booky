@@ -10,6 +10,6 @@ const PublicationSchema = mongoose.Schema({
 
 //Create publication Modal
 
-const PublicationModal = mongoose.model(PublicationSchema);
+const PublicationModal = mongoose.model("publication",PublicationSchema);
 
-module.exports(PublicationModal);
+module.exports=PublicationModal;

@@ -6,6 +6,11 @@ const mongoose = require("mongoose")
 //import dataBase
 const dataBase=require("./dataBase");
 
+//modals
+const BookModal = require("./dataBase/book");
+const AuthorModal = require("./dataBase/author");
+const PublicationModal = require("./dataBase/publication");
+
 //initialising express
 const booky=express();
 
@@ -23,8 +28,9 @@ PARAMETER      NONE
 METHOD         GET
 */
 
-booky.get("/",(req,res)=>{
-    return res.json({books:dataBase.books});
+booky.get("/",async (req,res)=>{
+    const getAllBooks = await BookModal.find();
+    return res.json(getAllBooks);
 });
 
 /*
@@ -34,9 +40,10 @@ ACCESS         PUBLIC
 PARAMETER      :isbn
 METHOD         GET
 */
-booky.get("/bn/:isbn",(req,res)=>{
-    const getSpecificBook=dataBase.books.filter((book)=> book.ISBN===req.params.isbn);
-    if(getSpecificBook.length === 0){
+booky.get("/bn/:isbn",async(req,res)=>{
+    const getSpecificBook= await BookModal.findOne({ISBN:req.params.isbn});
+    // const getSpecificBook=dataBase.books.filter((book)=> book.ISBN===req.params.isbn);
+    if(!getSpecificBook){
         return res.json({error:`sorry! ${req.params.isbn} is not available`})
     };
     return res.json({book:getSpecificBook});
@@ -49,9 +56,10 @@ ACCESS         PUBLIC
 PARAMETER      :language
 METHOD         GET
 */
-booky.get("/ln/:language",(req,res)=>{
-    const getSpecificBook = dataBase.books.filter((book)=>book.language === req.params.language);
-    if(getSpecificBook.length === 0){
+booky.get("/ln/:language",async(req,res)=>{
+    const getSpecificBook = await BookModal.findOne({language:req.params.language})
+    //const getSpecificBook = dataBase.books.filter((book)=>book.language === req.params.language);
+    if(!getSpecificBook){
         return res.json({error:`sorry! ${req.params.lang} books are not available`})
     };
     return res.json({books:getSpecificBook});
@@ -65,9 +73,10 @@ PARAMETER      :category
 METHOD         GET
 */
 
-booky.get("/c/:category",(req,res)=>{
-    const getSpecificBook = dataBase.books.filter((book)=> book.category.includes(req.params.category));
-    if(getSpecificBook.length === 0){
+booky.get("/c/:category",async(req,res)=>{
+    const getSpecificBook = await BookModal.findOne({category:req.params.category})
+    //const getSpecificBook = dataBase.books.filter((book)=> book.category.includes(req.params.category));
+    if(!getSpecificBook){
         return res.json({error:`sorry! ${req.params.category} category books are not available`})
     };
     return res.json({books:getSpecificBook});
@@ -81,8 +90,8 @@ PARAMETER      NONE
 METHOD         GET
 */
 
-booky.get("/author",(req,res)=>{
-    return res.json({books:dataBase.author});
+booky.get("/author",async(req,res)=>{
+    return res.json({books: await AuthorModal.find()});
 });
 
 /*
@@ -92,9 +101,10 @@ ACCESS         PUBLIC
 PARAMETER      :id
 METHOD         GET
 */
-booky.get("/author/id/:id",(req,res)=>{
-    const getSpecificAuthor=dataBase.author.filter((author)=> author.id == req.params.id);
-    if(getSpecificAuthor.length === 0){
+booky.get("/author/id/:id",async (req,res)=>{
+    const getSpecificAuthor = await AuthorModal.findOne({id:id})
+    // const getSpecificAuthor=dataBase.author.filter((author)=> author.id == req.params.id);
+    if(!getSpecificAuthor){
         return res.json({error:`sorry! ${req.params.id} author is not available`})
     };
     return res.json({Author:getSpecificAuthor});
@@ -108,9 +118,10 @@ PARAMETER      :isbn
 METHOD         GET
 */
 
-booky.get("/author/book/:isbn",(req,res)=>{
-    const getSpecificAuthor = dataBase.author.filter((author)=> author.books.includes(req.params.isbn));
-    if(getSpecificAuthor.length === 0){
+booky.get("/author/book/:isbn", async(req,res)=>{
+    const getSpecificAuthor = await AuthorModal.findOne({ISBN:isbn});
+    //const getSpecificAuthor = dataBase.author.filter((author)=> author.books.includes(req.params.isbn));
+    if(!getSpecificAuthor){
         return res.json({error:`sorry! ${req.params.isbn} author's books are not available`})
     };
     return res.json({Authors:getSpecificAuthor});
@@ -124,8 +135,8 @@ PARAMETER      NONE
 METHOD         GET
 */
 
-booky.get("/publication",(req,res)=>{
-    return res.json({books:dataBase.publication});
+booky.get("/publication",async(req,res)=>{
+    return res.json({books:await PublicationModal.find()});
 });
 
 /*
@@ -135,9 +146,10 @@ ACCESS         PUBLIC
 PARAMETER      :id
 METHOD         GET
 */
-booky.get("/publication/:id",(req,res)=>{
-    const getSpecificPublication=dataBase.publication.filter((publication)=> publication.id == req.params.id);
-    if(getSpecificPublication.length === 0){
+booky.get("/publication/:id",async(req,res)=>{
+    const getSpecificPublication = await PublicationModal.findOne({id:req.params.id})
+    //const getSpecificPublication=dataBase.publication.filter((publication)=> publication.id == req.params.id);
+    if(!getSpecificPublication){
         return res.json({error:`sorry! ${req.params.id} publication is not available`})
     };
     return res.json({Publications:getSpecificPublication});
@@ -152,9 +164,10 @@ METHOD         GET
 */
 
 
-booky.get("/publication/book/:isbn",(req,res)=>{
-    const getSpecificPublication = dataBase.publication.filter((publication)=> publication.books.includes(req.params.isbn));
-    if(getSpecificPublication.length === 0){
+booky.get("/publication/book/:isbn",async(req,res)=>{
+    const getSpecificPublication = await PublicationModal.findOne({ISBN:req.params.isbn})
+    //const getSpecificPublication = dataBase.publication.filter((publication)=> publication.books.includes(req.params.isbn));
+    if(!getSpecificPublication){
         return res.json({error:`sorry! ${req.params.isbn} publication's books are not available`})
     };
     return res.json({Publications:getSpecificPublication});
@@ -171,10 +184,11 @@ PARAMETER      NONE
 METHOD         POST
 */
 
-booky.post("/book/add",(req,res)=>{
+booky.post("/book/add",async(req,res)=>{
     const {newBook} = req.body;
-    dataBase.books.push(newBook);
-    return res.json({books:dataBase.books});
+    const addNewBook = await BookModal.create(newBook)
+    //dataBase.books.push(newBook);
+    return res.json({books:addNewBook});
 });
 /*
 ROUTE          /author/add
@@ -184,10 +198,11 @@ PARAMETER      NONE
 METHOD         POST
 */
 
-booky.post("/author/add",(req,res)=>{
+booky.post("/author/add",async(req,res)=>{
     const {newAuthor} = req.body;
-    dataBase.author.push(newAuthor);
-    return res.json({Authors:dataBase.author});
+    const addNewAuthor = await AuthorModal.create(newAuthor)
+    // dataBase.author.push(newAuthor);
+    return res.json({Authors:addNewAuthor});
 });
 /*
 ROUTE          /publication/add
@@ -197,10 +212,11 @@ PARAMETER      NONE
 METHOD         POST
 */
 
-booky.post("/publication/add",(req,res)=>{
+booky.post("/publication/add",async(req,res)=>{
     const {newPublication} = req.body;
-    dataBase.publication.push(newPublication);
-    return res.json({Publications:dataBase.publication});
+    const addNewPublication = await PublicationModal.create(newPublication);
+    //dataBase.publication.push(newPublication);
+    return res.json({Publications:addNewPublication});
 });
 
 //PUT....

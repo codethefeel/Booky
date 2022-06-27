@@ -1,7 +1,7 @@
 const mongoose=require("mongoose");
 
 //Create Book Schema
-const BookSchema=mongoose.Schema({
+const AuthorSchema=mongoose.Schema({
     id:Number,
     name:String,
     books:[String]
@@ -9,6 +9,6 @@ const BookSchema=mongoose.Schema({
 
 
 //Create Author modal
-const AuthorModal = mongoose.model(AuthorSchema);
+const AuthorModal = mongoose.model("author",AuthorSchema);
 
-module.exports(AuthorModal);
+module.exports=AuthorModal;
