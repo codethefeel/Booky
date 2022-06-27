@@ -1,4 +1,7 @@
+require("dotenv").config();
+
 const express =require("express");
+const mongoose = require("mongoose")
 
 //import dataBase
 const dataBase=require("./dataBase");
@@ -8,6 +11,9 @@ const booky=express();
 
 //configuration
 booky.use(express.json());
+
+//Establish mongoose connection
+mongoose.connect(process.env.MONGO_URL).then(()=>console.log("connection astablished!!!"));
 
 /*
 ROUTE          /
@@ -357,3 +363,5 @@ booky.delete("/book/publication/delete/:isbn/:pubId",(req,res)=>{
 });
 
 booky.listen("3000",()=>console.log("server is running"));
+
+
