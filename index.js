@@ -229,15 +229,27 @@ PARAMETER      :isbn
 METHOD         PUT
 */
 
-booky.put("/book/update/title/:isbn",(req,res)=>{
-    dataBase.books.forEach((book)=>{
-        if(book.ISBN===req.params.isbn)
-        {
-            book.title= req.body.newBookTitle;
-            return;
-        };
-    });
-    return res.json({books:dataBase.books});
+booky.put("/book/update/title/:isbn",async(req,res)=>{
+    const updatedBookData= await BookModal.findOneAndUpdate({
+        ISBN:req.params.isbn,
+    },
+    {
+        title:req.body.title,
+    },
+    {
+        new: true,
+    }
+    );
+
+
+    // dataBase.books.forEach((book)=>{
+    //     if(book.ISBN===req.params.isbn)
+    //     {
+    //         book.title= req.body.newBookTitle;
+    //         return;
+    //     };
+    // });
+    return res.json({books:updatedBookData});
 });
 
 /*
@@ -247,21 +259,44 @@ ACCESS         PUBLIC
 PARAMETER      :isbn
 METHOD         PUT
 */
-booky.put("/book/update/author/:isbn/:authorid",(req,res)=>{
+booky.put("/book/update/author/:isbn/:authorid",async(req,res)=>{
     //update book database
-    dataBase.books.forEach((book) => {
-        if(book.ISBN== req.params.isbn){
-            return book.author.push(parseInt(req.params.authorid))
+    const updatedBookData= await BookModal.findOneAndUpdate({
+        ISBN:req.params.isbn, 
+    },
+    {
+        $addToSet:{
+            author:parseInt(req.params.authorid),
         }
+    },
+    {
+        new:true,
     });
 
+    // dataBase.books.forEach((book) => {
+    //     if(book.ISBN== req.params.isbn){
+    //         return book.author.push(parseInt(req.params.authorid))
+    //     }
+    // });
+
     //update author database
-    dataBase.author.forEach((author)=>{
-        if(author.id==req.params.authorid){ 
-            return author.books.push(parseInt(req.params.isbn))
+    const updatedAuthorData= await AuthorModal.findOneAndUpdate({
+        id:parseInt(req.params.authorid),
+    },
+    {
+        $push:{
+            books:req.params.isbn,
         }
-    });
-    return res.json({books:dataBase.books,author:dataBase.author});
+    },
+    {
+        new:true,
+    })
+    // dataBase.author.forEach((author)=>{
+    //     if(author.id==req.params.authorid){ 
+    //         return author.books.push(parseInt(req.params.isbn))
+    //     }
+    // });
+    return res.json({books:updatedBookData,author:updatedAuthorData});
 });
 
 /*
@@ -271,23 +306,46 @@ ACCESS         PUBLIC
 PARAMETER      :isbn
 METHOD         PUT
 */
-booky.put(("/book/update/publication/:isbn"),(req,res)=>{
+booky.put(("/book/update/publication/:isbn"),async(req,res)=>{
     //update book database
-    dataBase.books.filter((book)=>{
-        if(book.ISBN==req.params.isbn){
-             book.publication = req.body.pubid;
-             return;
+    const updatedBookData= await BookModal.findOneAndUpdate({
+        ISBN:req.params.isbn, 
+    },
+    {
+        $addToSet:{
+            pablications:req.body.pubId,
         }
+    },
+    {
+        new:true,
     });
+
+    // dataBase.books.filter((book)=>{
+    //     if(book.ISBN==req.params.isbn){
+    //          book.publication = req.body.pubid;
+    //          return;
+    //     }
+    // });
 
     //update publications database
-    dataBase.publication.filter((publication)=>{
-        if(publication.id == req.body.pubid){
-            return publication.books.push(req.params.isbn);
+    const updatedPublicationData= await PublicationModal.findOneAndUpdate({
+        id:req.body.pubId,
+    },
+    {
+        $push:{
+            books:req.params.isbn,
         }
-    });
+    },
+    {
+        new:true,
+    })
+    // dataBase.publication.filter((publication)=>{
+    //     if(publication.id == req.body.pubid){
+    //         return publication.books.push(req.params.isbn);
+    //     }
+    // });
 
-    return res.json({books:dataBase.books,publication:dataBase.publication,message:"Successfully updated Publication of book"})
+    return res.json({books:updatedBookData,publication:updatedPublicationData,message:"Successfully updated Publication of book"})
 });
 
 //DELETE.......
@@ -300,12 +358,18 @@ PARAMETER      :isbn
 METHOD         DELETE
 */
 
-booky.delete(("/book/delete/:isbn"),(req,res)=>{
-    const updatedBooksDataBase= dataBase.books.filter(
-        (book)=>book.ISBN !== req.params.isbn
+booky.delete(("/book/delete/:isbn"),async(req,res)=>{
+    const updatedBookData = await BookModal.findOneAndDelete(
+        {
+            ISBN:req.params.isbn,
+        }
     );
-    dataBase.books=updatedBooksDataBase;
-    return res.json({Books:dataBase.books});
+
+    // const updatedBooksDataBase= dataBase.books.filter(
+    //     (book)=>book.ISBN !== req.params.isbn
+    // );
+    // dataBase.books=updatedBooksDataBase;
+    return res.json({Books:updatedBookData});
 });
 
 /*
@@ -315,33 +379,60 @@ ACCESS         PUBLIC
 PARAMETER      :isbn,:authorid
 METHOD         DELETE
 */
-booky.delete(("/book/author/delete/:isbn/:authorid"),(req,res)=>{
+booky.delete(("/book/author/delete/:isbn/:authorid"),async(req,res)=>{
     //delete author from books
-    dataBase.books.forEach(
-        (book)=>{
-            if(book.ISBN===req.params.isbn){
-            const newAuthorslist= book.author.filter(
-                (author)=>author !==parseInt(req.params.authorid)
-            );
-            book.author=newAuthorslist;
-            return;
+    const updatedBookData= await BookModal.findOneAndUpdate(
+        {
+            ISBN:req.params.isbn,
+        },
+        {
+            $pull:{
+                author:parseInt(req.params.authorid)
+            }
+        },
+        {
+            new:true,
         }
-        }
-        )
+    )
+
+    // dataBase.books.forEach(
+    //     (book)=>{
+    //         if(book.ISBN===req.params.isbn){
+    //         const newAuthorslist= book.author.filter(
+    //             (author)=>author !==parseInt(req.params.authorid)
+    //         );
+    //         book.author=newAuthorslist;
+    //         return;
+    //     }
+    //     }
+    //     )
 
     //delete book from author
-    dataBase.author.forEach(
-        (author)=>{
-            if(author.id === parseInt(req.params.authorid)){
-            const newBookslist= author.books.filter(
-                (book)=> book !==req.params.isbn
-            );
-            author.books=newBookslist;
-            return;
+    const updatedAuthorData= await AuthorModal.findOneAndUpdate(
+        {
+            id:parseInt(req.params.authorid),
+        },
+        {
+            $pull:{
+                books:req.params.isbn
+            }
+        },
+        {
+            new:true,
         }
-        }
-        )
-        return res.json({books:dataBase.books,authors:dataBase.author,Message:"Author was deleted"});
+    )
+    // dataBase.author.forEach(
+    //     (author)=>{
+    //         if(author.id === parseInt(req.params.authorid)){
+    //         const newBookslist= author.books.filter(
+    //             (book)=> book !==req.params.isbn
+    //         );
+    //         author.books=newBookslist;
+    //         return;
+    //     }
+    //     }
+    //     )
+        return res.json({books:updatedBookData,authors:updatedAuthorData,Message:"Author was deleted"});
 });
 
 /*
@@ -352,28 +443,55 @@ PARAMETER      :isbn,:pubId
 METHOD         DELETE
 */
 
-booky.delete("/book/publication/delete/:isbn/:pubId",(req,res)=>{
+booky.delete("/book/publication/delete/:isbn/:pubId",async(req,res)=>{
     //Delete publication data fron books
-    dataBase.books.forEach((book)=>{
-        if(book.ISBN===req.params.isbn){
-            book.publication=0;
-            return;
+    const updatedBookData= await BookModal.findOneAndUpdate(
+        {
+            ISBN:req.params.isbn,
+        },
+        {
+            $pull:{
+                publication:parseInt(req.params.pubId)
+            }
+        },
+        {
+            new:true,
         }
-    })
+    )
+    // dataBase.books.forEach((book)=>{
+    //     if(book.ISBN===req.params.isbn){
+    //         book.publication=0;
+    //         return;
+    //     }
+    // })
+
     //delete books data from publication
-    dataBase.publication.forEach((publication)=>{
-        if(publication.id===parseInt(req.params.pubId)){
-            newBooksData=publication.books.filter((book)=>
-                book!==req.params.isbn
-            );
-            publication.books=newBooksData;
-            return;
+    const updatedPublicationData= await PublicationModal.findOneAndUpdate(
+        {
+            id:parseInt(req.params.pubId),
+        },
+        {
+            $pull:{
+                books:req.params.isbn
+            }
+        },
+        {
+            new:true,
         }
-    })
+    )
+    // dataBase.publication.forEach((publication)=>{
+    //     if(publication.id===parseInt(req.params.pubId)){
+    //         newBooksData=publication.books.filter((book)=>
+    //             book!==req.params.isbn
+    //         );
+    //         publication.books=newBooksData;
+    //         return;
+    //     }
+    // })
 
     return res.json({
-        books:dataBase.books,
-        pablications:dataBase.publication,
+        books:updatedBookData,
+        pablications:updatedPublicationData,
         Message:"publication successfully deleted"
     })
 });
